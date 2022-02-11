@@ -1,0 +1,20 @@
+server:
+  port: 8080
+
+#log config
+logging:
+  level:
+    root: Info
+    com.david.bankapplication: debug
+
+#spring config
+spring:
+  jpa:
+    showSql: true
+    hibernate:
+      ddl-auto: create-drop
+  h2:
+    console:
+      enabled: true
+  datasource:
+    url: jdbc:h2:mem:testdb
