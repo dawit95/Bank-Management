@@ -33,7 +33,14 @@ dependencies {
     //Swagger 등록
     implementation group: 'io.springfox', name: 'springfox-swagger2', version: '2.9.2'
     implementation group: 'io.springfox', name: 'springfox-swagger-ui', version: '2.9.2'
+
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.3'
+
+//    // https://mvnrepository.com/artifact/org.apache.httpcomponents/httpclient
+//    implementation group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.13'
+
+    // https://mvnrepository.com/artifact/com.squareup.okhttp3/okhttp
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '4.9.1'
 
     //OPS
 //    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.5.5'

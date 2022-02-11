@@ -2,6 +2,7 @@ package com.david.bankapplication.account.web;
 
 import com.david.bankapplication.account.dto.RegisterRequestDto;
 import com.david.bankapplication.account.dto.TransferRequestDto;
+import com.david.bankapplication.account.service.AccountServiceImpl;
 import com.david.bankapplication.global.dto.SuccessResponseDto;
 import com.david.bankapplication.global.service.ResponseGenerateService;
 import io.swagger.annotations.ApiOperation;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class AccountController {
     Logger logger = LoggerFactory.getLogger(AccountController.class);
 
+    private final AccountServiceImpl accountService;
     private final ResponseGenerateService responseGenerateService;
 
     @ApiOperation(value = "계좌등록",notes = "성공시 요청한 은행에 계좌를 생성하고 계좌번호 반환!")
@@ -34,7 +36,7 @@ public class AccountController {
     public ResponseEntity<SuccessResponseDto> register(@RequestBody RegisterRequestDto requestDto) {
         logger.debug("AccountController 계좌 등록 in Param : {}", requestDto);
 
-        SuccessResponseDto successResponseDto = responseGenerateService.generateSuccessResponse("noneObject");
+        SuccessResponseDto successResponseDto = responseGenerateService.generateSuccessResponse(accountService.registerAccount(1L,requestDto.getBankCode()));
 
         return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
     }
