@@ -22,7 +22,7 @@ public class TransactionLog extends BaseTime {
     private Long pk;
 
     @Column(nullable = false, unique = true)
-    private Long txId;
+    private String txId;
 
     @Column(nullable = false)
     private Long userId;
@@ -40,7 +40,7 @@ public class TransactionLog extends BaseTime {
     private String amount;
 
     @Builder
-    public TransactionLog(Long userId, Long txId, Long fromAccountId, Long toAccountId, String comment, String amount) {
+    public TransactionLog(Long userId, String txId, Long fromAccountId, Long toAccountId, String comment, String amount) {
         this.userId = userId;
         this.txId = txId;
         this.fromAccountId = fromAccountId;
