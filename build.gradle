@@ -1,5 +1,6 @@
 plugins {
-    id 'org.springframework.boot' version '2.6.3'
+//    id 'org.springframework.boot' version '2.6.3'
+    id 'org.springframework.boot' version '2.5.9'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'java'
 }
@@ -35,7 +36,7 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.3'
 
     //OPS
-    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.5.5'
+//    implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.5.5'
 }
 
 tasks.named('test') {
