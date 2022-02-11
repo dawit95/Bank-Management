@@ -29,13 +29,13 @@ public class Account extends BaseTime {
     private String bankCode;
 
     @Column(nullable = false)
-    private Long bankAccountNumber;
+    private String bankAccountNumber;
 
     @Column
-    private Long bankAccountId;
+    private String bankAccountId;
 
     @Builder
-    public Account(Long userId,String bankCode,Long bankAccountNumber, Long bankAccountId){
+    public Account(Long userId,String bankCode,String bankAccountNumber, String bankAccountId){
         this.userId = userId;
         this.bankCode = bankCode;
         this.bankAccountNumber = bankAccountNumber;
