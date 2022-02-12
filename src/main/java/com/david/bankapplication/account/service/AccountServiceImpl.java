@@ -1,23 +1,22 @@
 package com.david.bankapplication.account.service;
 
+import com.david.bankapplication.global.util.RestTemplateUtil;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import okhttp3.ConnectionPool;
-import okhttp3.OkHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.*;
-import org.springframework.http.client.OkHttp3ClientHttpRequestFactory;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 /**
  * FileName : AccountServiceImpl
@@ -31,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 public class AccountServiceImpl implements AccountService {
     Logger logger = LoggerFactory.getLogger(AccountServiceImpl.class);
 
-    private static final String url = "https://banking-api.sample.com";
     private final ObjectMapper objectMapper;
 
     private static SecureRandom random;
+
     static {
         try {
             random = SecureRandom.getInstance("SHA1PRNG");
@@ -46,15 +45,7 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public String registerAccount(Long userId, String bankCode) {
 
-        RestTemplate restTemplate = new RestTemplate();
-        OkHttpClient client = new OkHttpClient.Builder()
-                .readTimeout(5, TimeUnit.SECONDS)
-                .connectTimeout(7, TimeUnit.SECONDS)
-                .connectionPool(new ConnectionPool(30, 10, TimeUnit.MINUTES)) //커넥션풀 적용
-                .build();
-        // @formatter:on
-        OkHttp3ClientHttpRequestFactory crf = new OkHttp3ClientHttpRequestFactory(client);
-        restTemplate.setRequestFactory(crf);
+//        RestTemplate restTemplate = new RestTemplate();
 
         //make HttpHeaders
         HttpHeaders httpHeaders = new HttpHeaders();
@@ -67,36 +58,28 @@ public class AccountServiceImpl implements AccountService {
         String bankAccountNumber = accountGenerator();
 
         //make param
-        Map<String,Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<>();
         map.put("bank_code", bankCode);
         map.put("bank_account_number", bankAccountNumber);
-        String param = null;
+
+        //통신
         try {
-            param = objectMapper.writeValueAsString(map);
-        } catch (JsonProcessingException e) {
-            logger.debug("Failed to create parameter!");
-            e.printStackTrace();
-        }
+            //make HttpEntity
+            HttpEntity<?> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(map), httpHeaders);
 
-        //make HttpEntity
-        HttpEntity httpEntity = new HttpEntity(param, httpHeaders);
+            logger.debug("httpEntity 확인 header : {}", httpEntity.getHeaders());
+            logger.debug("httpEntity 확인 body : {}", httpEntity.getBody());
+            logger.debug("httpEntity 확인 : {}", httpEntity);
 
-        logger.debug("httpEntity 확인 header : {}",httpEntity.getHeaders());
-        logger.debug("httpEntity 확인 body : {}",httpEntity.getBody());
-        logger.debug("httpEntity 확인 : {}",httpEntity);
-
-        //결과
-        try {
-            ResponseEntity<String> responseEntity = restTemplate.exchange(
-                    url+"/register",
-                    HttpMethod.POST,
-                    httpEntity,
-                    String.class);
+            ResponseEntity<String> responseEntity = RestTemplateUtil.getAccountResponseEntity(httpEntity);
 
             logger.debug("응답 코드 : {}", responseEntity.getStatusCode());
             logger.debug("응답 결과 출력 : {}", responseEntity.getBody());
-        }catch (Exception e){
-            logger.debug("예외 발생 : {}",e.toString());
+        } catch (JsonProcessingException e) {
+            logger.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
+            e.printStackTrace();
+        } catch (Exception e) {
+            logger.debug("RestTemplate 예외 발생 : {}", e.toString());
             e.printStackTrace();
         }
 
@@ -167,8 +150,8 @@ public class AccountServiceImpl implements AccountService {
 //    }
 
     /**
-     *  기본 httpClient 사용한 restTemplate 구현
-     *  응답 Content-Type이 text/html; charset=utf-8로 설정 실패
+     * 기본 httpClient 사용한 restTemplate 구현
+     * 응답 Content-Type이 text/html; charset=utf-8로 설정 실패
      */
 //    public String registerAccountVer2(Long userId, String bankCode) {
 //
@@ -210,7 +193,6 @@ public class AccountServiceImpl implements AccountService {
 //
 //        return null;
 //    }
-
     @Override
     public String transferAccount(Long userId, String txId, Long fromAccountId, Long toAccountId, String comment, String amount) {
         return null;
