@@ -5,18 +5,18 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 /**
- * FileName : SuccessResponseDto
+ * FileName : ExceptionResponseDto
  * Author : David
  * Date : 2022-02-15
- * Description : 성공시 응답 형식
+ * Description : 예외시 응답 형식
  */
 @NoArgsConstructor
 @Getter
-public class SuccessResponseDto {
-    private Object success;
+public class ExceptionResponseDto {
+    private Object error;
 
     @Builder
-    public SuccessResponseDto(Object success) {
-        this.success = success;
+    public ExceptionResponseDto(Object error) {
+        this.error = error;
     }
 }
