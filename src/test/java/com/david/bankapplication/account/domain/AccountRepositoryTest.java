@@ -30,11 +30,13 @@ public class AccountRepositoryTest {
         boolean result2 = accountRepository.existsByBankCodeAndBankAccountNumber("D002",account.getBankAccountNumber());
         boolean result3 = accountRepository.existsByBankCodeAndBankAccountNumber(account.getBankCode(),"0123456789");
         boolean result4 = accountRepository.existsByBankCodeAndBankAccountNumber("D002","0123456789");
+        boolean result5 = accountRepository.existsByBankCodeAndBankAccountNumber("","");
 
         //then
         Assertions.assertThat(result1).isTrue();
         Assertions.assertThat(result2).isFalse();
         Assertions.assertThat(result3).isFalse();
         Assertions.assertThat(result4).isFalse();
+        Assertions.assertThat(result5).isFalse();
     }
 }
