@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * Description : Account Entity DB Layer accessor
  */
 public interface AccountRepository extends JpaRepository<Account, Long> {
+
+    Boolean existsByBankCodeAndBankAccountNumber(String bankCode, String bankAccountNumber);
 }
