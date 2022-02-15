@@ -16,13 +16,5 @@ import java.io.Serializable;
 @ToString
 public class RegisterResponseDto implements Serializable {
     private String bank_account_id;
-    private String code;
-    private String message;
 
-    @Builder
-    public RegisterResponseDto(String bank_account_id, String code, String message) {
-        this.bank_account_id = bank_account_id;
-        this.code = code;
-        this.message = message;
-    }
 }
