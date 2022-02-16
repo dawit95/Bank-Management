@@ -34,25 +34,18 @@ public class Account extends BaseTime {
     @Column
     private String bankAccountId;
 
-    @Column
-    private String amount;
 
     @Builder
-    public Account(Long userId, String bankCode, String bankAccountNumber, String bankAccountId, String amount) {
+    public Account(Long userId, String bankCode, String bankAccountNumber, String bankAccountId) {
         this.userId = userId;
         this.bankCode = bankCode;
         this.bankAccountNumber = bankAccountNumber;
         this.bankAccountId = bankAccountId;
-        this.amount = amount;
     }
 
     public void updateBankAccount(String bankAccountId, String bankAccountNumber){
         this.bankAccountId = bankAccountId;
         this.bankAccountNumber = bankAccountNumber;
-    }
-
-    public void updateAmount(String amount){
-        this.amount = amount;
     }
 
 }
