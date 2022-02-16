@@ -14,11 +14,13 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 public class TransferRequestDto {
-    private Long fromAccountBankCode;
-    private Long fromAccountBankNumber;
-    private Long toAccountBankCode;
-    private Long toAccountBankNumber;
+    private Long userId;
+
+    private String fromAccountBankCode;
+    private String fromAccountBankNumber;
+    private String toAccountBankCode;
+    private String toAccountBankNumber;
 
     private String comment;
-    private String amount;
+    private String transfer_amount;
 }

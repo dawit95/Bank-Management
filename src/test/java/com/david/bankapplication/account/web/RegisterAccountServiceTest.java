@@ -63,10 +63,10 @@ public class RegisterAccountServiceTest {
                         .body("{\"bank_account_id\":\"12345678\"}")
                         .contentType(MediaType.APPLICATION_JSON));
         //when
-        AccountDto accountDto = accountService.registerAccount(1L, "D001");
+        AccountDto accountDto = accountService.registerAccount(1L, "D001", "100,000");
 
         //then
-        Account account = accountRepository.findByBankAccountId(accountDto.getBankAccountId()).get();
+        Account account = accountRepository.findByBankAccountId(accountDto.getBankAccountId()).orElse(null);
 
         Assertions.assertThat(accountDto.getUserId()).isEqualTo(account.getUserId());
         Assertions.assertThat(accountDto.getBankCode()).isEqualTo(account.getBankCode());
@@ -76,7 +76,7 @@ public class RegisterAccountServiceTest {
 
     @Test
     @DisplayName("계좌 등록 실패")
-    void whenFail(){
+    void whenFail() {
         //given
         mockServer
                 .expect(requestTo(requestUri))
@@ -87,8 +87,8 @@ public class RegisterAccountServiceTest {
                         .contentType(MediaType.APPLICATION_JSON));
         //when
         try {
-            AccountDto accountDto = accountService.registerAccount(1L, "D001");
-        } catch (TemporarilyUnavailableException e){
+            AccountDto accountDto = accountService.registerAccount(1L, "D001", "100,000");
+        } catch (TemporarilyUnavailableException e) {
             //then
             Assertions.assertThat(e.getMessage()).isEqualTo("잘못된 계좌 정보");
         }

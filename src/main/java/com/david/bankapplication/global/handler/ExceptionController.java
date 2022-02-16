@@ -26,7 +26,7 @@ public class ExceptionController {
     protected ResponseEntity<ExceptionResponseDto> handleEmptyResultDataAccess(TemporarilyUnavailableException e) {
         log.error("[TemporarilyUnavailableException] ", e);
 
-        ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse("일시적인 문제가 생겼습니다. 잠시후 다시 시도해주세요!");
+        ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse(e.getMessage().isBlank() ? "일시적인 문제가 생겼습니다. 잠시후 다시 시도해주세요!" : e.getMessage());
 
         return new ResponseEntity<>(exceptionResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }

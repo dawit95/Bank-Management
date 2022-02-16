@@ -14,5 +14,7 @@ import lombok.ToString;
 @Getter
 @NoArgsConstructor
 public class RegisterRequestDto {
+    private Long userId;
     private String bankCode;
+    private String amount;
 }

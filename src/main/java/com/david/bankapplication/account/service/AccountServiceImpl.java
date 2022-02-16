@@ -60,10 +60,11 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException {
+    public AccountDto registerAccount(Long userId, String bankCode, String amount) throws TemporarilyUnavailableException {
         Account targetAccount = Account.builder()
                 .userId(userId)
                 .bankCode(bankCode)
+                .amount(amount)
                 .build();
 
         //make HttpHeaders
@@ -95,6 +96,7 @@ public class AccountServiceImpl implements AccountService {
                 RegisterResponseDto responseDto = objectMapper.readValue(responseEntity.getBody(), RegisterResponseDto.class);
                 targetAccount.updateBankAccount(responseDto.getBank_account_id(), bankAccountNumber);
                 accountRepository.save(targetAccount);
+                return new AccountDto(targetAccount);
             }
         } catch (JsonProcessingException e) {
             log.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
@@ -114,14 +116,13 @@ public class AccountServiceImpl implements AccountService {
                 log.debug("HttpClientErrorException");
                 assert responseDto != null;
                 throw new TemporarilyUnavailableException(responseDto.getMessage());
-            }else if(e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))){
+            } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
                 log.debug("HttpServerErrorException");
                 assert responseDto != null;
                 throw new TemporarilyUnavailableException(responseDto.getMessage());
             }
         }
-
-        return new AccountDto(targetAccount);
+        throw new TemporarilyUnavailableException("서버의 예상하지 못한 에러발생! 잠시후 다시 시도해 주세요");
     }
 
     @Override

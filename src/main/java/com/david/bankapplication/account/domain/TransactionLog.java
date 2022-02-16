@@ -19,7 +19,7 @@ import javax.persistence.*;
 public class TransactionLog extends BaseTime {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pk;
+    private Long id;
 
     @Column(nullable = false, unique = true)
     private String txId;
@@ -37,15 +37,15 @@ public class TransactionLog extends BaseTime {
     private String comment;
 
     @Column
-    private String amount;
+    private String transferAmount;
 
     @Builder
-    public TransactionLog(Long userId, String txId, Long fromAccountId, Long toAccountId, String comment, String amount) {
+    public TransactionLog(Long userId, String txId, Long fromAccountId, Long toAccountId, String comment, String transferAmount) {
         this.userId = userId;
         this.txId = txId;
         this.fromAccountId = fromAccountId;
         this.toAccountId = toAccountId;
         this.comment = comment;
-        this.amount = amount;
+        this.transferAmount = transferAmount;
     }
 }

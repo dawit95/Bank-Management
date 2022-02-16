@@ -33,12 +33,12 @@ public class AccountController {
     private final AccountServiceImpl accountService;
     private final ResponseGenerateService responseGenerateService;
 
-    @ApiOperation(value = "계좌등록",notes = "성공시 요청한 은행에 계좌를 생성하고 계좌번호 반환!")
+    @ApiOperation(value = "계좌등록", notes = "성공시 요청한 은행에 계좌를 생성하고 계좌번호 반환!")
     @PostMapping("/register")
     public ResponseEntity<SuccessResponseDto> register(@RequestBody RegisterRequestDto requestDto) throws TemporarilyUnavailableException {
         log.debug("AccountController 계좌 등록 in Param : {}", requestDto);
 
-        AccountDto accountDto = accountService.registerAccount(1L,requestDto.getBankCode());
+        AccountDto accountDto = accountService.registerAccount(requestDto.getUserId(), requestDto.getBankCode(), requestDto.getAmount());
 
         SuccessResponseDto successResponseDto =
                 responseGenerateService.generateSuccessResponse(
@@ -47,10 +47,10 @@ public class AccountController {
         return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "계좌이체",notes = "계좌이체 성공시 거래 번호와 결과 반환!")
+    @ApiOperation(value = "계좌이체", notes = "계좌이체 성공시 거래 번호와 결과 반환!")
     @PostMapping("/transfer")
     public ResponseEntity<SuccessResponseDto> transfer(@RequestBody TransferRequestDto requestDto) {
-        log.debug("AccountController 계좌 이체 in Param : {}",requestDto);
+        log.debug("AccountController 계좌 이체 in Param : {}", requestDto);
 
         SuccessResponseDto successResponseDto =
                 responseGenerateService.generateSuccessResponse("noneObject");

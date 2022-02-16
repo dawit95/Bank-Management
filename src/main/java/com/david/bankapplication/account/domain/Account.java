@@ -20,7 +20,7 @@ public class Account extends BaseTime {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long pk;
+    private Long id;
 
     @Column(nullable = false)
     private Long userId;
@@ -34,17 +34,25 @@ public class Account extends BaseTime {
     @Column
     private String bankAccountId;
 
+    @Column
+    private String amount;
+
     @Builder
-    public Account(Long userId, String bankCode, String bankAccountNumber, String bankAccountId) {
+    public Account(Long userId, String bankCode, String bankAccountNumber, String bankAccountId, String amount) {
         this.userId = userId;
         this.bankCode = bankCode;
         this.bankAccountNumber = bankAccountNumber;
         this.bankAccountId = bankAccountId;
+        this.amount = amount;
     }
 
     public void updateBankAccount(String bankAccountId, String bankAccountNumber){
         this.bankAccountId = bankAccountId;
         this.bankAccountNumber = bankAccountNumber;
+    }
+
+    public void updateAmount(String amount){
+        this.amount = amount;
     }
 
 }

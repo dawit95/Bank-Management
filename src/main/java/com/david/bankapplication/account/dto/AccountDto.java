@@ -16,14 +16,14 @@ import lombok.ToString;
 @Getter @Setter
 @NoArgsConstructor
 public class AccountDto {
-    private Long pk;
+    private Long id;
     private Long userId;
     private String bankCode;
     private String bankAccountNumber;
     private String bankAccountId;
 
     public AccountDto(Account entity){
-        this.pk = entity.getPk();
+        this.id = entity.getId();
         this.userId = entity.getUserId();
         this.bankCode = entity.getBankCode();
         this.bankAccountId = entity.getBankAccountId();
