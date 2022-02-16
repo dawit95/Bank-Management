@@ -16,7 +16,7 @@ import com.david.bankapplication.global.exception.TemporarilyUnavailableExceptio
 public interface AccountService {
 
     //계좌 등록
-    AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException;
+    AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException, BankAPIException;
 
     //계좌 이체
 

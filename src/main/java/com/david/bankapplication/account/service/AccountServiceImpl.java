@@ -45,7 +45,7 @@ public class AccountServiceImpl implements AccountService {
     private final AccountRepository accountRepository;
     private final TransactionLogRepository transactionRepository;
 
-    private final RestTemplate registerRestTemplate;
+    private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
 
     private static SecureRandom random;
@@ -68,7 +68,7 @@ public class AccountServiceImpl implements AccountService {
      */
     @Transactional
     @Override
-    public AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException {
+    public AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException, BankAPIException {
         Account targetAccount = Account.builder()
                 .userId(userId)
                 .bankCode(bankCode)
@@ -87,7 +87,7 @@ public class AccountServiceImpl implements AccountService {
             //make HttpEntity
             HttpEntity<?> httpEntity = createHttpEntity(map);
 
-            ResponseEntity<String> responseEntity = registerRestTemplate.exchange(
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
                     "/register",
                     HttpMethod.POST,
                     httpEntity,
@@ -106,7 +106,7 @@ public class AccountServiceImpl implements AccountService {
             ErrorResponseDto responseDto = HttpStatusCodeException(e);
             if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
                 log.debug("HttpClientErrorException");
-                throw new TemporarilyUnavailableException(responseDto.getMessage());
+                throw new BankAPIException(responseDto.getMessage());
             } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
                 log.debug("HttpServerErrorException");
                 throw new TemporarilyUnavailableException(responseDto.getMessage());
@@ -136,7 +136,7 @@ public class AccountServiceImpl implements AccountService {
         Account fromAccount = accountRepository
                 .findByBankCodeAndBankAccountNumber(fromAccountBankCode, fromAccountBankNumber)
                 .orElseThrow(() -> new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다."));
-        if (Objects.equals(fromAccount.getUserId(), userId)) {
+        if (!Objects.equals(fromAccount.getUserId(), userId)) {
             throw new AuthorizationException("계좌의 정보를 다시 확인해주세요");
         }
 
@@ -161,17 +161,18 @@ public class AccountServiceImpl implements AccountService {
             //make HttpEntity
             HttpEntity<?> httpEntity = createHttpEntity(map);
 
-            ResponseEntity<String> responseEntity = registerRestTemplate.exchange(
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
                     "/transfer",
                     HttpMethod.POST,
                     httpEntity,
                     String.class);
+            log.debug("transfer response body : {}", responseEntity.getBody());
 
             if (responseEntity.getStatusCode().series() == HttpStatus.Series.SUCCESSFUL) {
                 TransferResponseDto responseDto = objectMapper.readValue(responseEntity.getBody(), TransferResponseDto.class);
                 TransactionLog transactionLog = TransactionLog.builder()
                         .userId(userId)
-                        .txId(txId)
+                        .txId(responseDto.getTx_id())
                         .bankTxId(responseDto.getBank_tx_id())
                         .fromAccountId(fromAccount.getId())
                         .toAccountId(toAccount.getId())
@@ -190,14 +191,13 @@ public class AccountServiceImpl implements AccountService {
             ErrorResponseDto responseDto = HttpStatusCodeException(e);
 
             if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
-                if (responseDto.getCode().equals("BANKING_ERROR_200")) {
-                    throw new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다.");
-                } else if (responseDto.getCode().equals("BANKING_ERROR_201")) {
-                    throw new NoAccountException(toAccountBankCode + "은행의 " + toAccountBankNumber + " 계좌가 존재하지 않습니다.");
-                } else {
-                    throw new BankAPIException(responseDto.getMessage());
-                }
-
+                log.debug("HttpClientErrorException");
+                throw new BankAPIException(responseDto.getMessage());
+//                if (responseDto.getCode().equals("BANKING_ERROR_200")) {
+//                    throw new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다.");
+//                } else if (responseDto.getCode().equals("BANKING_ERROR_201")) {
+//                    throw new NoAccountException(toAccountBankCode + "은행의 " + toAccountBankNumber + " 계좌가 존재하지 않습니다.");
+//                }
             } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
                 log.debug("HttpServerErrorException");
                 throw new TemporarilyUnavailableException(responseDto.getMessage());
@@ -206,6 +206,12 @@ public class AccountServiceImpl implements AccountService {
         throw new TemporarilyUnavailableException("서버의 예상하지 못한 에러발생! 잠시후 다시 시도해 주세요");
     }
 
+    /**
+     * 외부 API 예외 중복 처리
+     *
+     * @param e HttpStatusCodeException
+     * @return ErrorResponseDto
+     */
     private ErrorResponseDto HttpStatusCodeException(HttpStatusCodeException e) {
         log.trace("HttpStatusCodeException");
         log.trace("exception body : {}", e.getResponseBodyAsString());

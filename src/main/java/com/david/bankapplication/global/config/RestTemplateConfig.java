@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit;
 public class RestTemplateConfig {
 
     @Bean
-    public RestTemplate registerRestTemplate() {
+    public RestTemplate restTemplate() {
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(5, TimeUnit.SECONDS)
                 .connectTimeout(7, TimeUnit.SECONDS)

@@ -40,7 +40,7 @@ public class ExceptionController {
 
         ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse(e.getMessage().isBlank() ? "없는 계좌로 요청하셨습니다." : e.getMessage());
 
-        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(AuthorizationException.class)
@@ -49,7 +49,7 @@ public class ExceptionController {
 
         ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse(e.getMessage().isBlank() ? "해당 계좌의 접근이 허가되지 않았습니다." : e.getMessage());
 
-        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(BankAPIException.class)
@@ -58,6 +58,6 @@ public class ExceptionController {
 
         ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse(e.getMessage().isBlank() ? "해당 계좌의 접근이 허가되지 않았습니다." : e.getMessage());
 
-        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
+        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.BAD_REQUEST);
     }
 }
