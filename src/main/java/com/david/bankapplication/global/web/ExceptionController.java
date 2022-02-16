@@ -1,6 +1,7 @@
-package com.david.bankapplication.global.handler;
+package com.david.bankapplication.global.web;
 
 import com.david.bankapplication.global.dto.ExceptionResponseDto;
+import com.david.bankapplication.global.exception.NoAccountException;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 import com.david.bankapplication.global.service.ResponseGenerateService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,15 @@ public class ExceptionController {
         log.error("[TemporarilyUnavailableException] ", e);
 
         ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse(e.getMessage().isBlank() ? "일시적인 문제가 생겼습니다. 잠시후 다시 시도해주세요!" : e.getMessage());
+
+        return new ResponseEntity<>(exceptionResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(NoAccountException.class)
+    protected ResponseEntity<ExceptionResponseDto> handleEmptyResultDataAccess(NoAccountException e) {
+        log.error("[NoAccountException] ", e);
+
+        ExceptionResponseDto exceptionResponseDto = responseGenerateService.generateExceptionResponse(e.getMessage().isBlank() ? "없는 계좌로 요청하셨습니다." : e.getMessage());
 
         return new ResponseEntity<>(exceptionResponseDto, HttpStatus.INTERNAL_SERVER_ERROR);
     }
