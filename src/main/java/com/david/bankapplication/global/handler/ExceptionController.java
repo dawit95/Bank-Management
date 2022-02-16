@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
  * FileName : ExceptionController
  * Author : David
  * Date : 2022-02-15
- * Description :
+ * Description : ExceptionController
  */
 @Slf4j
 @RequiredArgsConstructor

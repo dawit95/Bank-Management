@@ -1,5 +1,6 @@
 package com.david.bankapplication.account.service;
 
+import com.david.bankapplication.account.dto.AccountDto;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 
 /**
@@ -11,7 +12,7 @@ import com.david.bankapplication.global.exception.TemporarilyUnavailableExceptio
 public interface AccountService {
 
     //계좌 등록
-    String registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException;
+    AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException;
 
     //계좌 이체
     String transferAccount(Long userId, String txId, Long fromAccountId, Long toAccountId, String comment, String amount);

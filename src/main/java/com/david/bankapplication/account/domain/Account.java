@@ -42,4 +42,9 @@ public class Account extends BaseTime {
         this.bankAccountId = bankAccountId;
     }
 
+    public void updateBankAccount(String bankAccountId, String bankAccountNumber){
+        this.bankAccountId = bankAccountId;
+        this.bankAccountNumber = bankAccountNumber;
+    }
+
 }

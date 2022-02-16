@@ -2,7 +2,10 @@ package com.david.bankapplication.account.service;
 
 import com.david.bankapplication.account.domain.Account;
 import com.david.bankapplication.account.domain.AccountRepository;
+import com.david.bankapplication.account.domain.TransactionLogRepository;
+import com.david.bankapplication.account.dto.AccountDto;
 import com.david.bankapplication.account.dto.RegisterResponseDto;
+import com.david.bankapplication.global.dto.ErrorResponseDto;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,8 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import java.security.NoSuchAlgorithmException;
@@ -20,7 +22,6 @@ import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * FileName : AccountServiceImpl
@@ -35,6 +36,7 @@ import java.util.Objects;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
+    private final TransactionLogRepository logRepository;
 
     private final RestTemplate registerRestTemplate;
     private final ObjectMapper objectMapper;
@@ -52,21 +54,23 @@ public class AccountServiceImpl implements AccountService {
     /**
      * 랜덤한 계좌번호를 만든다.
      *
+     * @return 만들어진 계좌번호 string
      * @Param 사용자 ID
      * @Param 계좌생성을 원하는 bank_code
-     * @return 만들어진 계좌번호 string
      */
     @Transactional
     @Override
-    public String registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException {
-
-        String account = "잠시후 다시 시도해 주세요!";
+    public AccountDto registerAccount(Long userId, String bankCode) throws TemporarilyUnavailableException {
+        Account targetAccount = Account.builder()
+                .userId(userId)
+                .bankCode(bankCode)
+                .build();
 
         //make HttpHeaders
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.setContentType(MediaType.APPLICATION_JSON);
         httpHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
-//        httpHeaders.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+        httpHeaders.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
 
         //make Account
         String bankAccountNumber = checkingAccountValidity(bankCode);
@@ -81,33 +85,43 @@ public class AccountServiceImpl implements AccountService {
             //make HttpEntity
             HttpEntity<?> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(map), httpHeaders);
 
-            ResponseEntity<RegisterResponseDto> responseEntity = registerRestTemplate.exchange(
+            ResponseEntity<String> responseEntity = registerRestTemplate.exchange(
                     "/register",
                     HttpMethod.POST,
                     httpEntity,
-                    RegisterResponseDto.class);
+                    String.class);
 
             if (responseEntity.getStatusCode().series() == HttpStatus.Series.SUCCESSFUL) {
-                Account targetAccount = Account.builder()
-                        .userId(userId)
-                        .bankCode(bankCode)
-                        .bankAccountNumber(bankAccountNumber)
-                        .bankAccountId(Objects.requireNonNull(responseEntity.getBody()).getBank_account_id())
-                        .build();
+                RegisterResponseDto responseDto = objectMapper.readValue(responseEntity.getBody(), RegisterResponseDto.class);
+                targetAccount.updateBankAccount(responseDto.getBank_account_id(), bankAccountNumber);
                 accountRepository.save(targetAccount);
-                return bankAccountNumber;
             }
         } catch (JsonProcessingException e) {
             log.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
             e.printStackTrace();
-        } catch (HttpClientErrorException e){
-            log.debug("log기록후 다시 도전");
-        } catch (HttpServerErrorException e){
-            throw new TemporarilyUnavailableException("외부 api 문제");
+        } catch (HttpStatusCodeException e) {
+            log.trace("HttpStatusCodeException");
+            log.trace("exception body : {}", e.getResponseBodyAsString());
+            ErrorResponseDto responseDto = null;
+            try {
+                responseDto = objectMapper.readValue(e.getResponseBodyAsString(), ErrorResponseDto.class);
+                log.debug("응답 확인 code : {}", responseDto.getCode());
+                log.debug("응답 확인 message : {}", responseDto.getMessage());
+            } catch (JsonProcessingException ex) {
+                ex.printStackTrace();
+            }
+            if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
+                log.debug("HttpClientErrorException");
+                assert responseDto != null;
+                throw new TemporarilyUnavailableException(responseDto.getMessage());
+            }else if(e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))){
+                log.debug("HttpServerErrorException");
+                assert responseDto != null;
+                throw new TemporarilyUnavailableException(responseDto.getMessage());
+            }
         }
 
-
-            return bankAccountNumber;
+        return new AccountDto(targetAccount);
     }
 
     @Override

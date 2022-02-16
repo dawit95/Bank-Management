@@ -1,5 +1,6 @@
 package com.david.bankapplication.account.web;
 
+import com.david.bankapplication.account.dto.AccountDto;
 import com.david.bankapplication.account.dto.RegisterRequestDto;
 import com.david.bankapplication.account.dto.TransferRequestDto;
 import com.david.bankapplication.account.service.AccountServiceImpl;
@@ -37,7 +38,11 @@ public class AccountController {
     public ResponseEntity<SuccessResponseDto> register(@RequestBody RegisterRequestDto requestDto) throws TemporarilyUnavailableException {
         log.debug("AccountController 계좌 등록 in Param : {}", requestDto);
 
-        SuccessResponseDto successResponseDto = responseGenerateService.generateSuccessResponse(accountService.registerAccount(1L,requestDto.getBankCode()));
+        AccountDto accountDto = accountService.registerAccount(1L,requestDto.getBankCode());
+
+        SuccessResponseDto successResponseDto =
+                responseGenerateService.generateSuccessResponse(
+                        accountDto.getBankAccountNumber());
 
         return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
     }
@@ -47,7 +52,8 @@ public class AccountController {
     public ResponseEntity<SuccessResponseDto> transfer(@RequestBody TransferRequestDto requestDto) {
         log.debug("AccountController 계좌 이체 in Param : {}",requestDto);
 
-        SuccessResponseDto successResponseDto = responseGenerateService.generateSuccessResponse("noneObject");
+        SuccessResponseDto successResponseDto =
+                responseGenerateService.generateSuccessResponse("noneObject");
 
         return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
     }

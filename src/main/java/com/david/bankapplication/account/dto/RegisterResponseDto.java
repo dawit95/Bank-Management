@@ -10,10 +10,9 @@ import java.io.Serializable;
  * Date : 2022-02-11
  * Description :
  */
-@NoArgsConstructor
-@Getter
-@Setter
 @ToString
+@Getter @Setter
+@NoArgsConstructor
 public class RegisterResponseDto implements Serializable {
     private String bank_account_id;
 
