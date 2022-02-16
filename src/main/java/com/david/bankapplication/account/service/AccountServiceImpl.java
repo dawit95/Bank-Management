@@ -2,11 +2,15 @@ package com.david.bankapplication.account.service;
 
 import com.david.bankapplication.account.domain.Account;
 import com.david.bankapplication.account.domain.AccountRepository;
+import com.david.bankapplication.account.domain.TransactionLog;
 import com.david.bankapplication.account.domain.TransactionLogRepository;
 import com.david.bankapplication.account.dto.AccountDto;
 import com.david.bankapplication.account.dto.RegisterResponseDto;
+import com.david.bankapplication.account.dto.TransactionLogDto;
+import com.david.bankapplication.account.dto.TransferResponseDto;
 import com.david.bankapplication.global.dto.ErrorResponseDto;
 import com.david.bankapplication.global.exception.AuthorizationException;
+import com.david.bankapplication.global.exception.BankAPIException;
 import com.david.bankapplication.global.exception.NoAccountException;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -58,9 +62,9 @@ public class AccountServiceImpl implements AccountService {
      * 계좌번호를 만든어 사용자 요청에 맞는 은행에 등록 (외부 API 사용)
      * 만들어진 계좌 DB에 저장
      *
-     * @Param 사용자 ID
-     * @Param 계좌생성을 원하는 bank_code
-     * @return 만들어진 계좌번호 string
+     * @param userId   사용자 ID
+     * @param bankCode 계좌생성을 원하는 bank_code
+     * @return 생성한 계좌 AccountDto
      */
     @Transactional
     @Override
@@ -69,12 +73,6 @@ public class AccountServiceImpl implements AccountService {
                 .userId(userId)
                 .bankCode(bankCode)
                 .build();
-
-        //make HttpHeaders
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        httpHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
-        httpHeaders.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
 
         //make Account
         String bankAccountNumber = createAccountNumber(bankCode);
@@ -87,7 +85,7 @@ public class AccountServiceImpl implements AccountService {
         //통신
         try {
             //make HttpEntity
-            HttpEntity<?> httpEntity = new HttpEntity<>(objectMapper.writeValueAsString(map), httpHeaders);
+            HttpEntity<?> httpEntity = createHttpEntity(map);
 
             ResponseEntity<String> responseEntity = registerRestTemplate.exchange(
                     "/register",
@@ -105,23 +103,12 @@ public class AccountServiceImpl implements AccountService {
             log.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
             e.printStackTrace();
         } catch (HttpStatusCodeException e) {
-            log.trace("HttpStatusCodeException");
-            log.trace("exception body : {}", e.getResponseBodyAsString());
-            ErrorResponseDto responseDto = null;
-            try {
-                responseDto = objectMapper.readValue(e.getResponseBodyAsString(), ErrorResponseDto.class);
-                log.debug("응답 확인 code : {}", responseDto.getCode());
-                log.debug("응답 확인 message : {}", responseDto.getMessage());
-            } catch (JsonProcessingException ex) {
-                ex.printStackTrace();
-            }
+            ErrorResponseDto responseDto = HttpStatusCodeException(e);
             if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
                 log.debug("HttpClientErrorException");
-                assert responseDto != null;
                 throw new TemporarilyUnavailableException(responseDto.getMessage());
             } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
                 log.debug("HttpServerErrorException");
-                assert responseDto != null;
                 throw new TemporarilyUnavailableException(responseDto.getMessage());
             }
         }
@@ -132,45 +119,127 @@ public class AccountServiceImpl implements AccountService {
      * 계좌 이체 (외부 API 사용)
      * 거래 기록 DB에 저장
      *
-     * @Param 사용자 ID
-     * @Param 계좌 이체 from to 계좌 ID
-     * @Param 거래 설명
-     * @Param 거래 금액
-     * @return 만들어진 계좌번호 string
+     * @param userId         사용자 ID
+     * @Param from & to 계좌의 은행코드 & 번호
+     * @param comment        거래 설명
+     * @param transferAmount 거래 금액
+     * @return 거래 기록 DTO
      */
     @Transactional
     @Override
-    public String transferAccount(
+    public TransactionLogDto transferAccount(
             Long userId,
             String fromAccountBankCode, String fromAccountBankNumber,
             String toAccountBankCode, String toAccountBankNumber,
-            String comment, String transferAmount) throws NoAccountException, AuthorizationException {
-        //유저가 가진 계좌 맞는지 알맞은 금액을 가졌는지 확인
+            String comment, String transferAmount) throws NoAccountException, AuthorizationException, TemporarilyUnavailableException, BankAPIException {
+        //유저가 가진 계좌 맞는지 확인
         Account fromAccount = accountRepository
-                .findByBankCodeAndBankAccountNumber(fromAccountBankCode,fromAccountBankNumber)
-                .orElseThrow(()->new NoAccountException(fromAccountBankCode+"은행의 사용자 계좌가 존재하지 않습니다."));
-        if(Objects.equals(fromAccount.getUserId(), userId)){
+                .findByBankCodeAndBankAccountNumber(fromAccountBankCode, fromAccountBankNumber)
+                .orElseThrow(() -> new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다."));
+        if (Objects.equals(fromAccount.getUserId(), userId)) {
             throw new AuthorizationException("계좌의 정보를 다시 확인해주세요");
         }
 
         //상대 계좌가 존재하는지 확인
+        Account toAccount = accountRepository
+                .findByBankCodeAndBankAccountNumber(toAccountBankCode, toAccountBankNumber)
+                .orElseThrow(() -> new NoAccountException(toAccountBankCode + "은행의 " + toAccountBankNumber + " 계좌가 존재하지 않습니다."));
+
+        //make tx_id
+        String txId = createTxId();
+
+        //make param
+        Map<String, Object> map = new HashMap<>();
+        map.put("tx_id", txId);
+        map.put("from_bank_account_id", fromAccount.getBankAccountId());
+        map.put("to_bank_code", toAccountBankCode);
+        map.put("to_bank_account_number", toAccountBankNumber);
+        map.put("transfer_amount", transferAmount);
 
         //계좌 이체 요청
+        try {
+            //make HttpEntity
+            HttpEntity<?> httpEntity = createHttpEntity(map);
 
-        //거래 내역 저장 및 결과 전달
+            ResponseEntity<String> responseEntity = registerRestTemplate.exchange(
+                    "/transfer",
+                    HttpMethod.POST,
+                    httpEntity,
+                    String.class);
 
-        return null;
+            if (responseEntity.getStatusCode().series() == HttpStatus.Series.SUCCESSFUL) {
+                TransferResponseDto responseDto = objectMapper.readValue(responseEntity.getBody(), TransferResponseDto.class);
+                TransactionLog transactionLog = TransactionLog.builder()
+                        .userId(userId)
+                        .txId(txId)
+                        .bankTxId(responseDto.getBank_tx_id())
+                        .fromAccountId(fromAccount.getId())
+                        .toAccountId(toAccount.getId())
+                        .comment(comment)
+                        .transferAmount(transferAmount)
+                        .build();
+                transactionRepository.save(transactionLog);
+                TransactionLogDto transactionLogDto = new TransactionLogDto(transactionLog);
+                transactionLogDto.setResult(responseDto.getResult());
+                return transactionLogDto;
+            }
+        } catch (JsonProcessingException e) {
+            log.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
+            e.printStackTrace();
+        } catch (HttpStatusCodeException e) {
+            ErrorResponseDto responseDto = HttpStatusCodeException(e);
+
+            if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
+                if (responseDto.getCode().equals("BANKING_ERROR_200")) {
+                    throw new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다.");
+                } else if (responseDto.getCode().equals("BANKING_ERROR_201")) {
+                    throw new NoAccountException(toAccountBankCode + "은행의 " + toAccountBankNumber + " 계좌가 존재하지 않습니다.");
+                } else {
+                    throw new BankAPIException(responseDto.getMessage());
+                }
+
+            } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
+                log.debug("HttpServerErrorException");
+                throw new TemporarilyUnavailableException(responseDto.getMessage());
+            }
+        }
+        throw new TemporarilyUnavailableException("서버의 예상하지 못한 에러발생! 잠시후 다시 시도해 주세요");
     }
 
-    public String transferAccount(Long userId, Long fromAccountId, Long toAccountId, String comment, String amount) {
+    private ErrorResponseDto HttpStatusCodeException(HttpStatusCodeException e) {
+        log.trace("HttpStatusCodeException");
+        log.trace("exception body : {}", e.getResponseBodyAsString());
+        ErrorResponseDto responseDto = new ErrorResponseDto();
+        try {
+            responseDto = objectMapper.readValue(e.getResponseBodyAsString(), ErrorResponseDto.class);
+            log.debug("응답 확인 code : {}", responseDto.getCode());
+            log.debug("응답 확인 message : {}", responseDto.getMessage());
+        } catch (JsonProcessingException ex) {
+            ex.printStackTrace();
+        }
+        return responseDto;
+    }
 
+    /**
+     * 외부 API 요청에 맞는 HttpEntity 생성
+     *
+     * @param map request body
+     * @return HttpEntity
+     */
+    private HttpEntity<?> createHttpEntity(Map<String, Object> map) throws JsonProcessingException {
+        //make HttpHeaders
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
+        httpHeaders.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
 
-        return null;
+        return new HttpEntity<>(objectMapper.writeValueAsString(map), httpHeaders);
     }
 
     /**
      * 유효한 계좌번호 생성
-     * @Param 은행코드 ["D001" || "D002" || "D003"]
+     *
+     * @param bankCode 은행코드 ["D001" || "D002" || "D003"]
      * @return 유효한 계좌번호 string
      */
     public String createAccountNumber(String bankCode) {
@@ -208,7 +277,8 @@ public class AccountServiceImpl implements AccountService {
 
     /**
      * 랜덤한 번호를 만든다.
-     * @Param 번호 길이
+     *
+     * @param numLength 번호 길이
      * @return 만들어진 번호 string
      */
     @Override

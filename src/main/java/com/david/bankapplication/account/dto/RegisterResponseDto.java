@@ -8,7 +8,7 @@ import java.io.Serializable;
  * FileName : RegisterResponseDto
  * Author : David
  * Date : 2022-02-11
- * Description :
+ * Description : 외부 API 결과 DTO
  */
 @ToString
 @Getter @Setter

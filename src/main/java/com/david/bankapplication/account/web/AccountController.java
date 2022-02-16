@@ -2,9 +2,13 @@ package com.david.bankapplication.account.web;
 
 import com.david.bankapplication.account.dto.AccountDto;
 import com.david.bankapplication.account.dto.RegisterRequestDto;
+import com.david.bankapplication.account.dto.TransactionLogDto;
 import com.david.bankapplication.account.dto.TransferRequestDto;
 import com.david.bankapplication.account.service.AccountServiceImpl;
 import com.david.bankapplication.global.dto.SuccessResponseDto;
+import com.david.bankapplication.global.exception.AuthorizationException;
+import com.david.bankapplication.global.exception.BankAPIException;
+import com.david.bankapplication.global.exception.NoAccountException;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 import com.david.bankapplication.global.service.ResponseGenerateService;
 import io.swagger.annotations.ApiOperation;
@@ -49,11 +53,21 @@ public class AccountController {
 
     @ApiOperation(value = "계좌이체", notes = "계좌이체 성공시 거래 번호와 결과 반환!")
     @PostMapping("/transfer")
-    public ResponseEntity<SuccessResponseDto> transfer(@RequestBody TransferRequestDto requestDto) {
+    public ResponseEntity<SuccessResponseDto> transfer(@RequestBody TransferRequestDto requestDto) throws NoAccountException, AuthorizationException, BankAPIException, TemporarilyUnavailableException {
         log.debug("AccountController 계좌 이체 in Param : {}", requestDto);
 
+        TransactionLogDto transactionLogDto = accountService.transferAccount(
+                requestDto.getUserId(),
+                requestDto.getFromAccountBankCode(),
+                requestDto.getFromAccountBankNumber(),
+                requestDto.getToAccountBankCode(),
+                requestDto.getToAccountBankNumber(),
+                requestDto.getComment(),
+                requestDto.getTransferAmount()
+        );
+
         SuccessResponseDto successResponseDto =
-                responseGenerateService.generateSuccessResponse("noneObject");
+                responseGenerateService.generateSuccessResponse(transactionLogDto);
 
         return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
     }

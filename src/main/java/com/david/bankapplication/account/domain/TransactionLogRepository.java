@@ -9,4 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
  * Description : TransactionLog Entity DB Layer accessor
  */
 public interface TransactionLogRepository extends JpaRepository<TransactionLog, Long> {
+
+    Boolean existsByTxId(String txId);
 }

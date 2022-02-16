@@ -22,5 +22,5 @@ public class TransferRequestDto {
     private String toAccountBankNumber;
 
     private String comment;
-    private String transfer_amount;
+    private String transferAmount;
 }

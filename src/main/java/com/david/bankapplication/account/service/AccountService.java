@@ -1,7 +1,9 @@
 package com.david.bankapplication.account.service;
 
 import com.david.bankapplication.account.dto.AccountDto;
+import com.david.bankapplication.account.dto.TransactionLogDto;
 import com.david.bankapplication.global.exception.AuthorizationException;
+import com.david.bankapplication.global.exception.BankAPIException;
 import com.david.bankapplication.global.exception.NoAccountException;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 
@@ -18,7 +20,7 @@ public interface AccountService {
 
     //계좌 이체
 
-    String transferAccount(Long userId, String fromAccountBankCode, String fromAccountBankNumber, String toAccountBankCode, String toAccountBankNumber, String comment, String transferAmount) throws NoAccountException, AuthorizationException;
+    TransactionLogDto transferAccount(Long userId, String fromAccountBankCode, String fromAccountBankNumber, String toAccountBankCode, String toAccountBankNumber, String comment, String transferAmount) throws NoAccountException, AuthorizationException, TemporarilyUnavailableException, BankAPIException;
 
     //util
     String accountGenerator(int numLength);
