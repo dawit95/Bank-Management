@@ -38,7 +38,7 @@ public class AccountController {
     public ResponseEntity<SuccessResponseDto> register(@RequestBody RegisterRequestDto requestDto) throws TemporarilyUnavailableException {
         log.debug("AccountController 계좌 등록 in Param : {}", requestDto);
 
-        AccountDto accountDto = accountService.registerAccount(requestDto.getUserId(), requestDto.getBankCode(), requestDto.getAmount());
+        AccountDto accountDto = accountService.registerAccount(requestDto.getUserId(), requestDto.getBankCode());
 
         SuccessResponseDto successResponseDto =
                 responseGenerateService.generateSuccessResponse(
