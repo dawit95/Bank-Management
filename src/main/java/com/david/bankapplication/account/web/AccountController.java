@@ -39,7 +39,7 @@ public class AccountController {
 
     @ApiOperation(value = "계좌등록", notes = "성공시 요청한 은행에 계좌를 생성하고 계좌번호 반환!")
     @PostMapping("/register")
-    public ResponseEntity<SuccessResponseDto> register(@RequestBody RegisterRequestDto requestDto) throws TemporarilyUnavailableException {
+    public ResponseEntity<SuccessResponseDto> register(@RequestBody RegisterRequestDto requestDto) throws TemporarilyUnavailableException, BankAPIException {
         log.debug("AccountController 계좌 등록 in Param : {}", requestDto);
 
         AccountDto accountDto = accountService.registerAccount(requestDto.getUserId(), requestDto.getBankCode());
