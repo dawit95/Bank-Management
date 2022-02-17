@@ -33,7 +33,7 @@
 - 기술 스택
     - Java / Spring Boot / h2
 <br>
-
+---
 <a name="functions">  
 
 ### 2. 계좌이체 API 서버 기능
@@ -51,6 +51,8 @@
    - 거래 내역 고유 값을 통해 계좌이체가 성공했는지 확인할수 있어요.
 
 <br>
+
+---
 
 <a name="problem_solving_strategy">  
 
@@ -87,6 +89,8 @@
 
 <br>
 
+---
+
 <a name="API_specifications">  
 
 ### 4. API 명세
@@ -98,6 +102,8 @@
 참고 : 로컬에서 서버가 구동 && 8080포트로 작동중 일때 확인가능
 
 <br>
+
+---
 
 <a name="server_driving_guide">  
 
@@ -127,6 +133,7 @@
    3. 테스트 및 API doc 확인 후
    4. 종료 `$ docker-compose down`
 
+---
 
 [맨 위로 가기](#top)
  
