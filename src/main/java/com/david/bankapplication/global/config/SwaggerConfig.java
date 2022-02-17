@@ -5,8 +5,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import springfox.documentation.builders.ApiInfoBuilder;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
 import springfox.documentation.spi.DocumentationType;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
@@ -24,6 +26,13 @@ public class SwaggerConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("KarrotBankServer API Dos")
+                .description("KarrotPay 과제전형 BankServer 소개를 위한 API 문서")
+                .build();
+    }
+
     @Bean
     public Docket api() {
 //        List<Parameter> global = new ArrayList<>();
@@ -32,9 +41,10 @@ public class SwaggerConfig implements WebMvcConfigurer {
 //                required(false).modelRef(new ModelRef("string")).build());
         return new Docket(DocumentationType.SWAGGER_2)
 //                .globalOperationParameters(global)
+                .apiInfo(this.apiInfo())
                 .useDefaultResponseMessages(false)
                 .select()
-                .apis(RequestHandlerSelectors.any())
+                .apis(RequestHandlerSelectors.basePackage("com.david.bankapplication.account"))
                 .paths(PathSelectors.ant("/api/**"))
                 .build();
     }

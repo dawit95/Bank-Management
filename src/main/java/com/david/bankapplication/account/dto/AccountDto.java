@@ -1,10 +1,8 @@
 package com.david.bankapplication.account.dto;
 
 import com.david.bankapplication.account.domain.Account;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.ToString;
+import io.swagger.annotations.ApiModelProperty;
+import lombok.*;
 
 /**
  * FileName : AccountDto
@@ -15,10 +13,13 @@ import lombok.ToString;
 @ToString
 @Getter @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
 public class AccountDto {
     private Long id;
     private Long userId;
     private String bankCode;
+    @ApiModelProperty(value = "등록된 계좌번호")
     private String bankAccountNumber;
     private String bankAccountId;
 
