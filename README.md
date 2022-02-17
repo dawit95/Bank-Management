@@ -30,7 +30,8 @@
     - REST API 구현
   - 서버에서 외부 뱅킹시스템 연결은 RestTemplate 사용
     - (요청 결과가 나오거나 timeout 될때까지 코드 블록됨)
-
+- 기술 스택
+    - Java / Spring Boot / h2
 <br>
 
 <a name="functions">  
@@ -62,7 +63,7 @@
    사용자(client)의 요청을 해결하기 위해 뱅킹시스템(외부API)의 결과가 필요합니다. 
    이때, Spring Framework가 제공하는 RestTemplate, WebClient 두개의 기능으로 해결 가능합니다. 
     
-   이 프로젝트에서는 RestTemplate이 사용되었습니다. 그 이유는 **Blocking 방식**을 선택했기 때문입니다. 
+   이 프로젝트에서는 RestTemplate이 사용되었습니다. 그 이유는 * Blocking 방식을 선택했기 때문입니다. 
    먼저 Blocking 방식은 뱅킹시스템의 결과에 따라 service에서 반응이 분기 하기때문에 뱅킹시스템 요청을 기다릴 필요가 있었습니다. 
    또한, 뱅킹시스템이 어떠한 사유로 응답이 늦어지면 무한정 기다릴수 없어 RestTemplate의 Connection Pool 등록시 설정해 일정시간 이후 timeout 처리하도록 진행했습니다.
    ```
@@ -84,8 +85,6 @@
    2. 계좌이체 서버는 정확한 요청 전달과 결과 응답 및 편의(계좌번호 생성, 이체내역 저장)를 제공한다.
    ```
 
-- 기술 스택
-    - Java / Spring Boot / h2
 <br>
 
 <a name="API_specifications">  
@@ -106,6 +105,27 @@
 
 </a>
 
+#### 1. IntelliJ 사용
+   - 로컬 환경에 git repogistory를 clone 받아 IntelliJ IDE 환경으로 프로젝트를 연다.
+   - java(openJDK corretto-11.0.13) 11버전으로 세팅한다.
+   - BankApplication.java 실행한다.
+   - 'http://localhost:8080/' 서버가 구동됨
+
+<br>
+
+#### 2. jar파일 실행으로 구동하기
+   - git repogistory를 clone 받아 jar_file.zip 속에 jar파일을 실행한다.
+   `java -jar .\BankApplication-0.0.1-SNAPSHOT-plain.jar`
+
+<br>
+
+#### 3. docker compose 사용
+   1. 애플리케이션 빌드<br>
+      `$ ./gradlew build`
+   2. docker-compose.yml 파일 실행<br>
+      `$ docker-compose up -d`
+   3. 테스트 및 API doc 확인 후
+   4. 종료 `$ docker-compose down`
 
 
 [맨 위로 가기](#top)
