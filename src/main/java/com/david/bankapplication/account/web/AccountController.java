@@ -17,10 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * FileName : AccountController
@@ -68,6 +65,17 @@ public class AccountController {
 
         SuccessResponseDto successResponseDto =
                 responseGenerateService.generateSuccessResponse(transactionLogDto);
+
+        return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
+    }
+
+    @ApiOperation(value = "계좌이체", notes = "계좌이체 성공시 거래 번호와 결과 반환!")
+    @GetMapping("/transfer/{txId}")
+    public ResponseEntity<SuccessResponseDto> transferInfo(@PathVariable String txId) throws BankAPIException, TemporarilyUnavailableException {
+        log.debug("AccountController 거래 내역 조회 in Param : {}", txId);
+
+        SuccessResponseDto successResponseDto =
+                responseGenerateService.generateSuccessResponse(accountService.transferInfo(txId));
 
         return new ResponseEntity<>(successResponseDto, HttpStatus.OK);
     }

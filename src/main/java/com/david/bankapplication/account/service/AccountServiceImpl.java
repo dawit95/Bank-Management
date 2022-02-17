@@ -4,10 +4,7 @@ import com.david.bankapplication.account.domain.Account;
 import com.david.bankapplication.account.domain.AccountRepository;
 import com.david.bankapplication.account.domain.TransactionLog;
 import com.david.bankapplication.account.domain.TransactionLogRepository;
-import com.david.bankapplication.account.dto.AccountDto;
-import com.david.bankapplication.account.dto.RegisterResponseDto;
-import com.david.bankapplication.account.dto.TransactionLogDto;
-import com.david.bankapplication.account.dto.TransferResponseDto;
+import com.david.bankapplication.account.dto.*;
 import com.david.bankapplication.global.dto.ErrorResponseDto;
 import com.david.bankapplication.global.exception.AuthorizationException;
 import com.david.bankapplication.global.exception.BankAPIException;
@@ -103,14 +100,14 @@ public class AccountServiceImpl implements AccountService {
             log.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
             e.printStackTrace();
         } catch (HttpStatusCodeException e) {
-            ErrorResponseDto responseDto = HttpStatusCodeException(e);
-            if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
-                log.debug("HttpClientErrorException");
-                throw new BankAPIException(responseDto.getMessage());
-            } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
-                log.debug("HttpServerErrorException");
-                throw new TemporarilyUnavailableException(responseDto.getMessage());
-            }
+            HttpStatusCodeException(e);
+//            if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
+//                log.debug("HttpClientErrorException");
+//                throw new BankAPIException(responseDto.getMessage());
+//            } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
+//                log.debug("HttpServerErrorException");
+//                throw new TemporarilyUnavailableException(responseDto.getMessage());
+//            }
         }
         throw new TemporarilyUnavailableException("서버의 예상하지 못한 에러발생! 잠시후 다시 시도해 주세요");
     }
@@ -188,31 +185,53 @@ public class AccountServiceImpl implements AccountService {
             log.debug("HttpEntity 생성 예외 발생 : {}", e.toString());
             e.printStackTrace();
         } catch (HttpStatusCodeException e) {
-            ErrorResponseDto responseDto = HttpStatusCodeException(e);
-
-            if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
-                log.debug("HttpClientErrorException");
-                throw new BankAPIException(responseDto.getMessage());
-//                if (responseDto.getCode().equals("BANKING_ERROR_200")) {
-//                    throw new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다.");
-//                } else if (responseDto.getCode().equals("BANKING_ERROR_201")) {
-//                    throw new NoAccountException(toAccountBankCode + "은행의 " + toAccountBankNumber + " 계좌가 존재하지 않습니다.");
-//                }
-            } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
-                log.debug("HttpServerErrorException");
-                throw new TemporarilyUnavailableException(responseDto.getMessage());
-            }
+            HttpStatusCodeException(e);
         }
         throw new TemporarilyUnavailableException("서버의 예상하지 못한 에러발생! 잠시후 다시 시도해 주세요");
+    }
+
+    /**
+     * 거래 기록 조회 (외부 API 사용)
+     *
+     * @param txId 거래 아이디
+     * @return 결과 DTO
+     */
+    @Override
+    public ResultDto transferInfo(String txId) throws BankAPIException, TemporarilyUnavailableException {
+        //make HttpHeaders
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        httpHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
+        httpHeaders.add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/54.0.2840.99 Safari/537.36");
+
+        HttpEntity<?> request = new HttpEntity<>(httpHeaders);
+
+        try {
+            ResponseEntity<String> responseEntity = restTemplate.exchange(
+                    "/transfer/"+txId,
+                    HttpMethod.GET,
+                    request,
+                    String.class);
+
+            if (responseEntity.getStatusCode().series() == HttpStatus.Series.SUCCESSFUL) {
+                log.debug("response body : {}", responseEntity.getBody());
+                return objectMapper.readValue(responseEntity.getBody(),ResultDto.class);
+            }
+        } catch (HttpStatusCodeException e) {
+            HttpStatusCodeException(e);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+        throw new TemporarilyUnavailableException("서버의 예상하지 못한 에러발생! 잠시후 다시 시도해 주세요");
+
     }
 
     /**
      * 외부 API 예외 중복 처리
      *
      * @param e HttpStatusCodeException
-     * @return ErrorResponseDto
      */
-    private ErrorResponseDto HttpStatusCodeException(HttpStatusCodeException e) {
+    private void HttpStatusCodeException(HttpStatusCodeException e) throws BankAPIException, TemporarilyUnavailableException {
         log.trace("HttpStatusCodeException");
         log.trace("exception body : {}", e.getResponseBodyAsString());
         ErrorResponseDto responseDto = new ErrorResponseDto();
@@ -223,7 +242,18 @@ public class AccountServiceImpl implements AccountService {
         } catch (JsonProcessingException ex) {
             ex.printStackTrace();
         }
-        return responseDto;
+        if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(400)) || e.getStatusCode().series().equals(HttpStatus.Series.valueOf(422))) {
+            log.debug("HttpClientErrorException");
+            throw new BankAPIException(responseDto.getMessage());
+//                if (responseDto.getCode().equals("BANKING_ERROR_200")) {
+//                    throw new NoAccountException(fromAccountBankCode + "은행의 " + fromAccountBankNumber + " 계좌가 존재하지 않습니다.");
+//                } else if (responseDto.getCode().equals("BANKING_ERROR_201")) {
+//                    throw new NoAccountException(toAccountBankCode + "은행의 " + toAccountBankNumber + " 계좌가 존재하지 않습니다.");
+//                }
+        } else if (e.getStatusCode().series().equals(HttpStatus.Series.valueOf(500))) {
+            log.debug("HttpServerErrorException");
+            throw new TemporarilyUnavailableException(responseDto.getMessage());
+        }
     }
 
     /**

@@ -1,9 +1,6 @@
-package com.david.bankapplication.account.web;
+package com.david.bankapplication.account.service;
 
-import com.david.bankapplication.account.domain.Account;
-import com.david.bankapplication.account.domain.AccountRepository;
-import com.david.bankapplication.account.dto.AccountDto;
-import com.david.bankapplication.account.service.AccountServiceImpl;
+import com.david.bankapplication.account.dto.ResultDto;
 import com.david.bankapplication.global.exception.BankAPIException;
 import com.david.bankapplication.global.exception.TemporarilyUnavailableException;
 import org.assertj.core.api.Assertions;
@@ -24,27 +21,25 @@ import static org.springframework.test.web.client.match.MockRestRequestMatchers.
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 
 /**
- * FileName : RegisterAccountServiceTest
+ * FileName : TransferInfoService
  * Author : David
- * Date : 2022-02-15
- * Description : 계좌 등록 Service Test
+ * Date : 2022-02-17
+ * Description : 계좌이체 결과 확인 Account Service Test
  */
+
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class RegisterAccountServiceTest {
-
+public class TransferInfoServiceTest {
     private RestTemplate restTemplate;
     private AccountServiceImpl accountService;
-    private AccountRepository accountRepository;
     private MockRestServiceServer mockServer;
 
-    private final String requestUri = "https://banking-api.sample.com/register";
+    private final String requestUri = "https://banking-api.sample.com/transfer";
 
     @Autowired
-    public RegisterAccountServiceTest(RestTemplate restTemplate, AccountServiceImpl accountService, AccountRepository accountRepository) {
+    public TransferInfoServiceTest(RestTemplate restTemplate, AccountServiceImpl accountService) {
         this.restTemplate = restTemplate;
         this.accountService = accountService;
-        this.accountRepository = accountRepository;
     }
 
     @BeforeEach
@@ -53,49 +48,45 @@ public class RegisterAccountServiceTest {
     }
 
     @Test
-    @DisplayName("계좌 등록 성공")
+    @DisplayName("거래 내역 조회")
     void whenSuccess() throws TemporarilyUnavailableException, BankAPIException {
         //given
         mockServer
-                .expect(requestTo(requestUri))
-                .andExpect(method(HttpMethod.POST))
+                .expect(requestTo(requestUri+"/12346578"))
+                .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Content-Type", "application/json"))
                 .andRespond(withStatus(HttpStatus.OK)
-                        .body("{\"bank_account_id\":\"12345678\"}")
+                        .body("{\"result\":\"SUCCESS\"}")
                         .contentType(MediaType.APPLICATION_JSON));
         //when
-        AccountDto accountDto = accountService.registerAccount(1L, "D001");
+        ResultDto resultDto = accountService.transferInfo("12346578");
 
         //then
-        Account account = accountRepository.findByBankAccountId(accountDto.getBankAccountId()).orElse(null);
-
-        Assertions.assertThat(accountDto.getUserId()).isEqualTo(account.getUserId());
-        Assertions.assertThat(accountDto.getBankCode()).isEqualTo(account.getBankCode());
-        Assertions.assertThat(accountDto.getBankAccountId()).isEqualTo(account.getBankAccountId());
-        Assertions.assertThat(accountDto.getBankAccountNumber()).isEqualTo(account.getBankAccountNumber());
+        Assertions.assertThat(resultDto.getResult())
+                .isEqualTo("SUCCESS");
     }
 
     @Test
-    @DisplayName("계좌 등록 실패")
+    @DisplayName("거래 내역 조회 예외 상황")
     void whenFail() {
         //given
         mockServer
-                .expect(requestTo(requestUri))
-                .andExpect(method(HttpMethod.POST))
+                .expect(requestTo(requestUri+"/12346578"))
+                .andExpect(method(HttpMethod.GET))
                 .andExpect(header("Content-Type", "application/json"))
                 .andRespond(withStatus(HttpStatus.BAD_REQUEST)
-                        .body("{\"code\":\"BANKING_ERROR_100\", \"message\":\"잘못된 계좌 정보\"}")
+                        .body("{\"code\":\"BANKING_ERROR_200\", \"message\":\"잘못된 거래 ID\"}")
                         .contentType(MediaType.APPLICATION_JSON));
-        //when
+
         try {
-            AccountDto accountDto = accountService.registerAccount(1L, "D001");
+            //when
+            ResultDto resultDto = accountService.transferInfo("12346578");
         } catch (TemporarilyUnavailableException e) {
-            //then
-            Assertions.assertThat(e.getMessage()).isEqualTo("잘못된 계좌 정보");
-        } catch (BankAPIException e) {
             e.printStackTrace();
+        } catch (BankAPIException e) {
+            //then
+            Assertions.assertThat(e.getMessage()).isEqualTo("잘못된 거래 ID");
         }
 
     }
-
 }

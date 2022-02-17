@@ -1,11 +1,10 @@
-package com.david.bankapplication.account.web;
+package com.david.bankapplication.account.service;
 
 import com.david.bankapplication.account.domain.Account;
 import com.david.bankapplication.account.domain.AccountRepository;
 import com.david.bankapplication.account.domain.TransactionLog;
 import com.david.bankapplication.account.domain.TransactionLogRepository;
 import com.david.bankapplication.account.dto.TransactionLogDto;
-import com.david.bankapplication.account.service.AccountServiceImpl;
 import com.david.bankapplication.global.exception.AuthorizationException;
 import com.david.bankapplication.global.exception.BankAPIException;
 import com.david.bankapplication.global.exception.NoAccountException;
@@ -87,7 +86,7 @@ public class TransferAccountServiceTest {
         );
 
         //then
-        TransactionLog transactionLog = transactionLogRepository.findByTxId("11223344").orElse(null);
+        TransactionLog transactionLog = transactionLogRepository.findByTxId("11223344").orElse(TransactionLog.builder().build());
 
         Assertions.assertThat(transactionLogDto.getTxId())
                 .isEqualTo(transactionLog.getTxId());
