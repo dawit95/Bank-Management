@@ -28,8 +28,8 @@ public class SwaggerConfig implements WebMvcConfigurer {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("KarrotBankServer API Dos")
-                .description("KarrotPay 과제전형 BankServer 소개를 위한 API 문서")
+                .title("계좌이체 서버 API Dos")
+                .description("KarrotPay 과제전형 계좌이체 서버 소개를 위한 API 문서")
                 .build();
     }
 

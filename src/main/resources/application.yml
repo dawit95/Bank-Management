@@ -1,5 +1,7 @@
 server:
   port: 8080
+  tomcat:
+    uri-encoding: UTF-8
 
 #log config
 logging:
@@ -10,7 +12,7 @@ logging:
 #spring config
 spring:
   jpa:
-    showSql: true
+    showSql: false
     hibernate:
       ddl-auto: create-drop
   h2:
