@@ -17,6 +17,8 @@
 
 <br>
 
+---
+
 <a name="about_project">  
 
 ### 1. 프로젝트 설명
