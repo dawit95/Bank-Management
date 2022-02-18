@@ -123,20 +123,20 @@
 
 <br>
 
-#### 2. jar파일 실행으로 구동하기
-   - git repogistory를 clone 받아 jar_file.zip 속에 jar파일을 실행한다.
-   `java -jar .\BankApplication-0.0.1-SNAPSHOT-plain.jar`
+#### 2. docker compose 사용
+1. 애플리케이션 빌드<br>
+   `$ ./gradlew build`
+2. docker-compose.yml 파일 실행<br>
+   `$ docker-compose up -d`
+3. 테스트 및 API doc 확인 후
+4. 종료 `$ docker-compose down`
 
-<br>
+### 추가!! 로컬 환경 서버 구동 테스트를 위한 임시 서버
+(사용해도 되고 안해도 됩니다.)
+#### 단, 사용시 application.yml의 my.rootUri값을 임시 뱅킹서버 주소로 일치시켜줘야한다.
 
-#### 3. docker compose 사용
-   1. 애플리케이션 빌드<br>
-      `$ ./gradlew build`
-   2. docker-compose.yml 파일 실행<br>
-      `$ docker-compose up -d`
-   3. 테스트 및 API doc 확인 후
-   4. 종료 `$ docker-compose down`
-
+- [github 주소](https://github.com/dawit95/BankingSystem)
+- docker image : dawit95/demo-bank-system
 ---
 
 [맨 위로 가기](#top)
