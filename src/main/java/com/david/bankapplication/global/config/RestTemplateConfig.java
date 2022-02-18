@@ -3,6 +3,7 @@ package com.david.bankapplication.global.config;
 import com.david.bankapplication.global.interceptor.RequestResponseLoggingInterceptor;
 import okhttp3.ConnectionPool;
 import okhttp3.OkHttpClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,8 +22,9 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class RestTemplateConfig {
 
+
     @Bean
-    public RestTemplate restTemplate() {
+    public RestTemplate restTemplate(@Value("${my.rootUri}") String rootUri) {
         OkHttpClient client = new OkHttpClient.Builder()
                 .readTimeout(5, TimeUnit.SECONDS)
                 .connectTimeout(7, TimeUnit.SECONDS)
@@ -33,7 +35,8 @@ public class RestTemplateConfig {
 
 
         return new RestTemplateBuilder()
-                .rootUri("https://banking-api.sample.com")
+                .rootUri(rootUri)
+//                .rootUri("https://banking-api.sample.com")
                 .additionalInterceptors(new RequestResponseLoggingInterceptor())
 //                .errorHandler(new RestTemplateErrorHandler())
                 .requestFactory(() -> crf)

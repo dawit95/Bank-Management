@@ -20,3 +20,6 @@ spring:
       enabled: true
   datasource:
     url: jdbc:h2:mem:testdb
+
+my:
+  rootUri: "http://localhost:19999/banking-api"

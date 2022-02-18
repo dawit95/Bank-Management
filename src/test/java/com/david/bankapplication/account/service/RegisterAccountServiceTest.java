@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -37,7 +38,11 @@ public class RegisterAccountServiceTest {
     private AccountRepository accountRepository;
     private MockRestServiceServer mockServer;
 
-    private final String requestUri = "https://banking-api.sample.com/register";
+
+//    private final String requestUri = "https://banking-api.sample.com/register";
+//    private final String requestUri = "http://localhost:19999/banking-api/register";
+    @Value("${my.rootUri}")
+    private String requestUri;
 
     @Autowired
     public RegisterAccountServiceTest(RestTemplate restTemplate, AccountServiceImpl accountService, AccountRepository accountRepository) {
@@ -56,7 +61,7 @@ public class RegisterAccountServiceTest {
     void whenSuccess() throws TemporarilyUnavailableException, BankAPIException {
         //given
         mockServer
-                .expect(requestTo(requestUri))
+                .expect(requestTo(requestUri+"/register"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Content-Type", "application/json"))
                 .andRespond(withStatus(HttpStatus.OK)
@@ -79,7 +84,7 @@ public class RegisterAccountServiceTest {
     void whenFail() {
         //given
         mockServer
-                .expect(requestTo(requestUri))
+                .expect(requestTo(requestUri+"/register"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Content-Type", "application/json"))
                 .andRespond(withStatus(HttpStatus.BAD_REQUEST)

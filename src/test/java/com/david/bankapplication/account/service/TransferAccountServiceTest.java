@@ -15,6 +15,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -43,7 +44,10 @@ public class TransferAccountServiceTest {
     private TransactionLogRepository transactionLogRepository;
     private MockRestServiceServer mockServer;
 
-    private final String requestUri = "https://banking-api.sample.com/transfer";
+    //    private final String requestUri = "https://banking-api.sample.com/transfer";
+//    private final String requestUri = "http://localhost:19999/banking-api/transfer";
+    @Value("${my.rootUri}")
+    private String requestUri;
 
     @Autowired
     public TransferAccountServiceTest(RestTemplate restTemplate, AccountServiceImpl accountService, AccountRepository accountRepository, TransactionLogRepository transactionLogRepository) {
@@ -68,7 +72,7 @@ public class TransferAccountServiceTest {
         accountRepository.save(account2);
 
         mockServer
-                .expect(requestTo(requestUri))
+                .expect(requestTo(requestUri+"/transfer"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Content-Type", "application/json"))
                 .andRespond(withStatus(HttpStatus.OK)
@@ -101,7 +105,7 @@ public class TransferAccountServiceTest {
     void whenFail() {
         //given
         mockServer
-                .expect(requestTo(requestUri))
+                .expect(requestTo(requestUri+"/transfer"))
                 .andExpect(method(HttpMethod.POST))
                 .andExpect(header("Content-Type", "application/json"))
                 .andRespond(withStatus(HttpStatus.BAD_REQUEST)
