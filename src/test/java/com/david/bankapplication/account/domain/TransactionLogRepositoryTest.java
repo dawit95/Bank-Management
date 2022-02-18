@@ -28,7 +28,7 @@ public class TransactionLogRepositoryTest {
                 .fromAccountId(1L)
                 .toAccountId(2L)
                 .comment("입금")
-                .transferAmount("100,000")
+                .transferAmount(100000L)
                 .build();
         transactionLogRepository.save(transactionLog);
 

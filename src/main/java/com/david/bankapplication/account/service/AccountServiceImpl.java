@@ -128,7 +128,7 @@ public class AccountServiceImpl implements AccountService {
             Long userId,
             String fromAccountBankCode, String fromAccountBankNumber,
             String toAccountBankCode, String toAccountBankNumber,
-            String comment, String transferAmount) throws NoAccountException, AuthorizationException, TemporarilyUnavailableException, BankAPIException {
+            String comment, Long transferAmount) throws NoAccountException, AuthorizationException, TemporarilyUnavailableException, BankAPIException {
         //유저가 가진 계좌 맞는지 확인
         Account fromAccount = accountRepository
                 .findByBankCodeAndBankAccountNumber(fromAccountBankCode, fromAccountBankNumber)

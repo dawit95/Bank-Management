@@ -32,5 +32,5 @@ public class TransferRequestDto {
     @ApiModelProperty(value = "계좌이체 Comment", required = true, example = "다윗님 입사 축하금!")
     private String comment;
     @ApiModelProperty(value = "입금 금액", required = true, example = "5,000,000")
-    private String transferAmount;
+    private Long transferAmount;
 }

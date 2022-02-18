@@ -1,6 +1,7 @@
 package com.david.bankapplication.account.domain;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 
@@ -10,6 +11,7 @@ import java.util.Optional;
  * Date : 2022-02-11
  * Description : TransactionLog Entity DB Layer accessor
  */
+@Repository
 public interface TransactionLogRepository extends JpaRepository<TransactionLog, Long> {
 
     Boolean existsByTxId(String txId);

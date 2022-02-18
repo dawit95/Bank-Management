@@ -82,7 +82,7 @@ public class TransferAccountServiceTest {
                 "D003",
                 "0987654321",
                 "최다윗 송금",
-                "100,000"
+                100000L
         );
 
         //then
@@ -116,7 +116,7 @@ public class TransferAccountServiceTest {
                     "D003",
                     "0987654321",
                     "최다윗 송금",
-                    "100,000"
+                    100000L
             );
         } catch (TemporarilyUnavailableException | NoAccountException | AuthorizationException e) {
             e.printStackTrace();

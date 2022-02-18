@@ -40,10 +40,10 @@ public class TransactionLog extends BaseTime {
     private String comment;
 
     @Column
-    private String transferAmount;
+    private Long transferAmount;
 
     @Builder
-    public TransactionLog(Long userId, String txId,String bankTxId, Long fromAccountId, Long toAccountId, String comment, String transferAmount) {
+    public TransactionLog(Long userId, String txId,String bankTxId, Long fromAccountId, Long toAccountId, String comment, Long transferAmount) {
         this.userId = userId;
         this.txId = txId;
         this.bankTxId = bankTxId;
