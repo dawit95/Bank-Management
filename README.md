@@ -1,6 +1,6 @@
 <a name="top">
 
-# Karrot-Bank-Management
+# Bank-Management
 
 </a>
 
