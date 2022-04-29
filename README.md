@@ -138,7 +138,6 @@
 (사용해도 되고 안해도 됩니다.)
 #### 단, 사용시 application.yml의 my.rootUri값을 임시 뱅킹서버 주소로 일치시켜줘야한다.
 
-- 임시 서버의 소스코드 : BankingSystem.zip
 - docker image : dawit95/demo-bank-system
 ---
 
